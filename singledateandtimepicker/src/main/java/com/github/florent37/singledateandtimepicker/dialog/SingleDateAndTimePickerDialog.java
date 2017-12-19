@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import com.github.florent37.singledateandtimepicker.R;
 import com.github.florent37.singledateandtimepicker.SingleDateAndTimePicker;
+import com.github.florent37.singledateandtimepicker.widget.WheelDayPicker;
 import com.github.florent37.singledateandtimepicker.widget.WheelMinutePicker;
 
 import java.text.SimpleDateFormat;
@@ -220,6 +221,9 @@ public class SingleDateAndTimePickerDialog extends BaseDialog {
         }
     }
 
+    public void setCustomItems(WheelDayPicker.DayItem... item){
+
+    }
     @Override
     public void close() {
         super.close();

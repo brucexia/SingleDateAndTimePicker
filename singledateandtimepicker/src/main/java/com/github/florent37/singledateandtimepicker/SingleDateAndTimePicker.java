@@ -21,10 +21,11 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 public class SingleDateAndTimePicker extends LinearLayout {
 
-    public static final boolean IS_CYCLIC_DEFAULT = true;
+    public static final boolean IS_CYCLIC_DEFAULT = false;
     public static final boolean IS_CURVED_DEFAULT = false;
     public static final boolean MUST_BE_ON_FUTUR_DEFAULT = false;
     public static final int DELAY_BEFORE_CHECK_PAST = 200;
@@ -92,9 +93,19 @@ public class SingleDateAndTimePicker extends LinearLayout {
 
         daysPicker.setOnDaySelectedListener(new WheelDayPicker.OnDaySelectedListener() {
             @Override
-            public void onDaySelected(WheelDayPicker picker, int position, String name, Date date) {
-                updateListener();
-                checkMinMaxDate(picker);
+            public void onDaySelected(WheelDayPicker picker, int position, WheelDayPicker.DayItem item) {
+                if (item instanceof WheelDayPicker.DateItem) {
+                    hoursPicker.setEnabled(true);
+                    minutesPicker.setEnabled(true);
+                    amPmPicker.setEnabled(true);
+                    updateListener();
+                    checkMinMaxDate(picker);
+                } else if (item instanceof WheelDayPicker.CustomItem && listener != null) {
+                    listener.onCustomItemSelected((WheelDayPicker.CustomItem) item);
+                    hoursPicker.setEnabled(false);
+                    minutesPicker.setEnabled(false);
+                    amPmPicker.setEnabled(false);
+                }
             }
         });
 
@@ -150,6 +161,10 @@ public class SingleDateAndTimePicker extends LinearLayout {
 
         updatePicker();
         updateViews();
+    }
+
+    public void setCustomItems(List<WheelDayPicker.DayItem> items) {
+        daysPicker.setCustomItems(items);
     }
 
     @Override
@@ -262,7 +277,7 @@ public class SingleDateAndTimePicker extends LinearLayout {
                 wheelPicker.setVisibleItemCount(visibleItemCount);
                 wheelPicker.setCurved(isCurved);
                 if (wheelPicker != amPmPicker) {
-                    wheelPicker.setCyclic(isCyclic);
+//                    wheelPicker.setCyclic(isCyclic);
                 }
             }
         }
@@ -274,15 +289,15 @@ public class SingleDateAndTimePicker extends LinearLayout {
         if (hoursPicker != null) {
             hoursPicker.setIsAmPm(isAmPm);
 
-            if ( defaultDate != null ) {
+            if (defaultDate != null) {
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTime(defaultDate);
-                if(isAmPm){
-                    hoursPicker.setDefaultHour( calendar.get(Calendar.HOUR));
-                }else{
-                    hoursPicker.setDefaultHour( calendar.get(Calendar.HOUR_OF_DAY));
+                if (isAmPm) {
+                    hoursPicker.setDefaultHour(calendar.get(Calendar.HOUR));
+                } else {
+                    hoursPicker.setDefaultHour(calendar.get(Calendar.HOUR_OF_DAY));
                 }
-                
+
             }
 
         }
@@ -368,7 +383,9 @@ public class SingleDateAndTimePicker extends LinearLayout {
     public void setListener(Listener listener) {
         this.listener = listener;
     }
-
+    public WheelDayPicker.DayItem getCurrentItem(){
+        return daysPicker.getItem(daysPicker.getCurrentItemPosition());
+    }
     public Date getDate() {
         int hour = hoursPicker.getCurrentHour();
         if (isAmPm && amPmPicker.isPm()) {
@@ -394,7 +411,7 @@ public class SingleDateAndTimePicker extends LinearLayout {
         hoursPicker.setHoursStep(hoursStep);
     }
 
-    public void setDefaultDate( Date date ) {
+    public void setDefaultDate(Date date) {
         this.defaultDate = date;
     }
 
@@ -457,5 +474,7 @@ public class SingleDateAndTimePicker extends LinearLayout {
 
     public interface Listener {
         void onDateChanged(String displayed, Date date);
+
+        void onCustomItemSelected(WheelDayPicker.CustomItem item);
     }
 }

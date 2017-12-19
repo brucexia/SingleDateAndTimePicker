@@ -14,16 +14,18 @@ import java.util.List;
 
 public class WheelDayPicker extends WheelPicker {
 
-    public static final int DAYS_PADDING = 364;
+    public static final int DAYS_PADDING = 100;
     private int defaultIndex;
 
     private int todayPosition;
+    boolean showOlder = false;
 
     private SimpleDateFormat simpleDateFormat;
 
     private OnDaySelectedListener onDaySelectedListener;
 
-    WheelPicker.Adapter adapter;
+    Adapter adapter;
+    List<DayItem> customItems;
 
     public WheelDayPicker(Context context) {
         this(context, null);
@@ -41,7 +43,12 @@ public class WheelDayPicker extends WheelPicker {
         updateDefaultDay();
     }
 
-    public WheelDayPicker setDayFormatter(SimpleDateFormat simpleDateFormat){
+    public void setCustomItems(List<DayItem> customItems) {
+        this.customItems = customItems;
+        updateDays();
+    }
+
+    public WheelDayPicker setDayFormatter(SimpleDateFormat simpleDateFormat) {
         this.simpleDateFormat = simpleDateFormat;
         updateDays();
         return this;
@@ -49,10 +56,10 @@ public class WheelDayPicker extends WheelPicker {
 
     @Override
     protected void onItemSelected(int position, Object item) {
-        if (onDaySelectedListener != null) {
-            final String itemText = (String) item;
-            final Date date = convertItemToDate(position);
-            onDaySelectedListener.onDaySelected(this, position, itemText, date);
+        if (item instanceof DayItem && onDaySelectedListener != null) {
+//            final String itemText = (String) item;
+//            final Date date = convertItemToDate(position);
+            onDaySelectedListener.onDaySelected(this, position, (DayItem) item);
         }
     }
 
@@ -66,26 +73,33 @@ public class WheelDayPicker extends WheelPicker {
     }
 
     private void updateDays() {
-        final List<String> data = new ArrayList<>();
+        final List<DayItem> data = new ArrayList<>();
 
         Calendar instance = Calendar.getInstance();
-        instance.add(Calendar.DATE, -1 * DAYS_PADDING - 1);
-        for (int i = (-1) * DAYS_PADDING; i < 0; ++i) {
-            instance.add(Calendar.DAY_OF_MONTH, 1);
-            data.add(getFormattedValue(instance.getTime()));
-        }
 
+        if (showOlder) {
+            instance.add(Calendar.DATE, -1 * DAYS_PADDING - 1);
+            for (int i = (-1) * DAYS_PADDING; i < 0; ++i) {
+                instance.add(Calendar.DAY_OF_MONTH, 1);
+                Date d = instance.getTime();
+                data.add(new DateItem(getFormattedValue(d), d.getTime()));
+            }
+        }
+        if (customItems != null && !customItems.isEmpty()) {
+            data.addAll(customItems);
+        }
         todayPosition = data.size();
         defaultIndex = todayPosition;
 
         //today
-        data.add(getResources().getString(R.string.picker_today));
+        data.add(new DateItem(getResources().getString(R.string.picker_today), instance.getTimeInMillis()));
 
         instance = Calendar.getInstance();
 
         for (int i = 0; i < DAYS_PADDING; ++i) {
             instance.add(Calendar.DATE, 1);
-            data.add(getFormattedValue(instance.getTime()));
+            Date d = instance.getTime();
+            data.add(new DateItem(getFormattedValue(d), d.getTime()));
         }
 
         adapter.setData(data);
@@ -106,6 +120,10 @@ public class WheelDayPicker extends WheelPicker {
 
     public int getDefaultDayIndex() {
         return defaultIndex;
+    }
+
+    public DayItem getItem(int pos) {
+        return (DayItem) adapter.getItem(pos);
     }
 
     public Date getCurrentDate() {
@@ -153,6 +171,51 @@ public class WheelDayPicker extends WheelPicker {
     }
 
     public interface OnDaySelectedListener {
-        void onDaySelected(WheelDayPicker picker, int position, String name, Date date);
+        void onDaySelected(WheelDayPicker picker, int position, DayItem item);
+    }
+
+    public static abstract class DayItem {
+        CharSequence display;
+
+        public DayItem(CharSequence display) {
+            this.display = display;
+        }
+
+        public CharSequence getDisplay() {
+            return display;
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(display);
+        }
+    }
+
+    public abstract static class CustomItem extends DayItem {
+        public CustomItem(CharSequence display) {
+            super(display);
+        }
+
+        public abstract void onClick();
+    }
+
+    public static class DateItem extends DayItem {
+        long timeInMillis;
+
+        public DateItem(CharSequence display, long timeInMillis) {
+            super(display);
+            this.timeInMillis = timeInMillis;
+        }
+
+        public long getTimeInMillis() {
+            return timeInMillis;
+        }
+    }
+
+    public static class Adapter extends WheelPicker.Adapter {
+        @Override
+        public Object getItem(int position) {
+            return getData().get(position);
+        }
     }
 }

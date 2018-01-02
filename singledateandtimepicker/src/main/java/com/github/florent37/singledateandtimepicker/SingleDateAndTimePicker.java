@@ -112,8 +112,10 @@ public class SingleDateAndTimePicker extends LinearLayout {
         minutesPicker.setOnMinuteSelectedListener(new WheelMinutePicker.OnMinuteSelectedListener() {
             @Override
             public void onMinuteSelected(WheelMinutePicker picker, int position, int minutes) {
-                updateListener();
-                checkMinMaxDate(picker);
+                if (daysPicker.isDateSelected()) {
+                    updateListener();
+                    checkMinMaxDate(picker);
+                }
             }
 
             @Override
@@ -130,8 +132,10 @@ public class SingleDateAndTimePicker extends LinearLayout {
         hoursPicker.setOnHourSelectedListener(new WheelHourPicker.OnHourSelectedListener() {
             @Override
             public void onHourSelected(WheelHourPicker picker, int position, int hours) {
-                updateListener();
-                checkMinMaxDate(picker);
+                if (daysPicker.isDateSelected()) {
+                    updateListener();
+                    checkMinMaxDate(picker);
+                }
             }
 
             @Override
@@ -148,8 +152,10 @@ public class SingleDateAndTimePicker extends LinearLayout {
         amPmPicker.setOnAmPmSelectedListener(new WheelAmPmPicker.OnAmPmSelectedListener() {
             @Override
             public void onAmSelected(WheelAmPmPicker picker) {
-                updateListener();
-                checkMinMaxDate(picker);
+                if (daysPicker.isDateSelected()) {
+                    updateListener();
+                    checkMinMaxDate(picker);
+                }
             }
 
             @Override
@@ -383,9 +389,11 @@ public class SingleDateAndTimePicker extends LinearLayout {
     public void setListener(Listener listener) {
         this.listener = listener;
     }
-    public WheelDayPicker.DayItem getCurrentItem(){
+
+    public WheelDayPicker.DayItem getCurrentItem() {
         return daysPicker.getItem(daysPicker.getCurrentItemPosition());
     }
+
     public Date getDate() {
         int hour = hoursPicker.getCurrentHour();
         if (isAmPm && amPmPicker.isPm()) {
@@ -428,6 +436,9 @@ public class SingleDateAndTimePicker extends LinearLayout {
 
     private void updateListener() {
         final Date date = getDate();
+        if (date == null) {
+            return;
+        }
         CharSequence format = isAmPm ? FORMAT_12_HOUR : FORMAT_24_HOUR;
         String displayed = DateFormat.format(format, date).toString();
         if (listener != null) {

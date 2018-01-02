@@ -130,6 +130,10 @@ public class WheelDayPicker extends WheelPicker {
         return convertItemToDate(super.getCurrentItemPosition());
     }
 
+    public boolean isDateSelected(){
+        return getItem(getCurrentItemPosition()) instanceof DateItem;
+    }
+
     private Date convertItemToDate(int itemPosition) {
         Date date = null;
         String itemText = adapter.getItemText(itemPosition);

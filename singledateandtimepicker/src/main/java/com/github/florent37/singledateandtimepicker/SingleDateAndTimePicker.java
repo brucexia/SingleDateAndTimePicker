@@ -9,7 +9,9 @@ import android.text.format.DateFormat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ViewFlipper;
 
 import com.github.florent37.singledateandtimepicker.widget.WheelAmPmPicker;
 import com.github.florent37.singledateandtimepicker.widget.WheelDayPicker;
@@ -23,7 +25,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class SingleDateAndTimePicker extends LinearLayout {
+public class SingleDateAndTimePicker extends FrameLayout {
 
     public static final boolean IS_CYCLIC_DEFAULT = false;
     public static final boolean IS_CURVED_DEFAULT = false;
@@ -39,6 +41,7 @@ public class SingleDateAndTimePicker extends LinearLayout {
     private WheelMinutePicker minutesPicker;
     private WheelHourPicker hoursPicker;
     private WheelAmPmPicker amPmPicker;
+    View timeContainer;
 
     private Listener listener;
 
@@ -50,7 +53,7 @@ public class SingleDateAndTimePicker extends LinearLayout {
     private boolean isCyclic;
     private boolean isCurved;
     private int visibleItemCount;
-    private View dtSelector;
+//    private View dtSelector;
     private boolean mustBeOnFuture;
 
     @Nullable
@@ -85,26 +88,22 @@ public class SingleDateAndTimePicker extends LinearLayout {
         minutesPicker = (WheelMinutePicker) findViewById(R.id.minutesPicker);
         hoursPicker = (WheelHourPicker) findViewById(R.id.hoursPicker);
         amPmPicker = (WheelAmPmPicker) findViewById(R.id.amPmPicker);
-        dtSelector = findViewById(R.id.dtSelector);
+        timeContainer = findViewById(R.id.timeContainer);
+//        dtSelector = findViewById(R.id.dtSelector);
 
-        final ViewGroup.LayoutParams dtSelectorLayoutParams = dtSelector.getLayoutParams();
-        dtSelectorLayoutParams.height = selectorHeight;
-        dtSelector.setLayoutParams(dtSelectorLayoutParams);
+//        final ViewGroup.LayoutParams dtSelectorLayoutParams = dtSelector.getLayoutParams();
+//        dtSelectorLayoutParams.height = selectorHeight;
+//        dtSelector.setLayoutParams(dtSelectorLayoutParams);
 
         daysPicker.setOnDaySelectedListener(new WheelDayPicker.OnDaySelectedListener() {
             @Override
             public void onDaySelected(WheelDayPicker picker, int position, WheelDayPicker.DayItem item) {
                 if (item instanceof WheelDayPicker.DateItem) {
-                    hoursPicker.setEnabled(true);
-                    minutesPicker.setEnabled(true);
-                    amPmPicker.setEnabled(true);
+                    timeContainer.setVisibility(View.VISIBLE);
                     updateListener();
                     checkMinMaxDate(picker);
-                } else if (item instanceof WheelDayPicker.CustomItem && listener != null) {
-                    listener.onCustomItemSelected((WheelDayPicker.CustomItem) item);
-                    hoursPicker.setEnabled(false);
-                    minutesPicker.setEnabled(false);
-                    amPmPicker.setEnabled(false);
+                } else {
+                    timeContainer.setVisibility(View.GONE);
                 }
             }
         });
@@ -154,7 +153,7 @@ public class SingleDateAndTimePicker extends LinearLayout {
             public void onAmSelected(WheelAmPmPicker picker) {
                 if (daysPicker.isDateSelected()) {
                     updateListener();
-                    checkMinMaxDate(picker);
+//                    checkMinMaxDate(picker);
                 }
             }
 
@@ -298,12 +297,14 @@ public class SingleDateAndTimePicker extends LinearLayout {
             if (defaultDate != null) {
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTime(defaultDate);
+                daysPicker.updateDefaultDay(defaultDate);
                 if (isAmPm) {
                     hoursPicker.setDefaultHour(calendar.get(Calendar.HOUR));
                 } else {
                     hoursPicker.setDefaultHour(calendar.get(Calendar.HOUR_OF_DAY));
                 }
-
+            } else {
+                daysPicker.updateDefaultDay(1);
             }
 
         }
@@ -320,12 +321,12 @@ public class SingleDateAndTimePicker extends LinearLayout {
     }
 
     private void updateViews() {
-        dtSelector.setBackgroundColor(selectorColor);
+//        dtSelector.setBackgroundColor(selectorColor);
     }
 
     private void checkMinMaxDate(final WheelPicker picker) {
-        checkBeforeMinDate(picker);
-        checkAfterMaxDate(picker);
+//        checkBeforeMinDate(picker);
+//        checkAfterMaxDate(picker);
     }
 
     private void checkBeforeMinDate(final WheelPicker picker) {
@@ -421,6 +422,7 @@ public class SingleDateAndTimePicker extends LinearLayout {
 
     public void setDefaultDate(Date date) {
         this.defaultDate = date;
+        updatePicker();
     }
 
     public void selectDate(Calendar calendar) {

@@ -1,6 +1,7 @@
 package com.github.florent37.singledateandtimepicker.widget;
 
 import android.content.Context;
+import android.text.format.DateUtils;
 import android.util.AttributeSet;
 
 import com.github.florent37.singledateandtimepicker.R;
@@ -37,10 +38,8 @@ public class WheelDayPicker extends WheelPicker {
         this.simpleDateFormat = new SimpleDateFormat("EEE d MMM", getCurrentLocale());
         this.adapter = new Adapter();
         setAdapter(adapter);
-
+        defaultIndex = 1;
         updateDays();
-
-        updateDefaultDay();
     }
 
     public void setCustomItems(List<DayItem> customItems) {
@@ -89,7 +88,6 @@ public class WheelDayPicker extends WheelPicker {
             data.addAll(customItems);
         }
         todayPosition = data.size();
-        defaultIndex = todayPosition;
 
         //today
         data.add(new DateItem(getResources().getString(R.string.picker_today), instance.getTimeInMillis()));
@@ -114,8 +112,45 @@ public class WheelDayPicker extends WheelPicker {
         this.onDaySelectedListener = onDaySelectedListener;
     }
 
-    private void updateDefaultDay() {
+    public void setCurrentDate(Date date) {
+
+    }
+
+    public void updateDefaultDay(int index) {
+        defaultIndex = index;
         setSelectedItemPosition(defaultIndex);
+    }
+
+    public void updateDefaultDay(Date index) {
+        defaultIndex = findDateIndex(index);
+        setSelectedItemPosition(defaultIndex);
+    }
+
+    public static boolean isSameDay(long date1, long date2) {
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.setTimeInMillis(date1);
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.setTimeInMillis(date2);
+        boolean sameYear = calendar1.get(Calendar.YEAR) == calendar2.get(Calendar.YEAR);
+        boolean sameMonth = calendar1.get(Calendar.MONTH) == calendar2.get(Calendar.MONTH);
+        boolean sameDay = calendar1.get(Calendar.DAY_OF_MONTH) == calendar2.get(Calendar.DAY_OF_MONTH);
+        return (sameDay && sameMonth && sameYear);
+
+//        long julianDayNumber1 = date1 / DateUtils.DAY_IN_MILLIS;
+//        long julianDayNumber2 = date2 / DateUtils.DAY_IN_MILLIS;
+//
+//        // If they now are equal then it is the same day.
+//        return julianDayNumber1 == julianDayNumber2;
+
+    }
+
+    int findDateIndex(Date date) {
+        for (int i = 0; i < adapter.getItemCount(); i++) {
+            if (adapter.getItem(i) instanceof DateItem
+                    && isSameDay(date.getTime(), ((DateItem) adapter.getItem(i)).getTimeInMillis()))
+                return i;
+        }
+        return 1;
     }
 
     public int getDefaultDayIndex() {
@@ -130,7 +165,7 @@ public class WheelDayPicker extends WheelPicker {
         return convertItemToDate(super.getCurrentItemPosition());
     }
 
-    public boolean isDateSelected(){
+    public boolean isDateSelected() {
         return getItem(getCurrentItemPosition()) instanceof DateItem;
     }
 
